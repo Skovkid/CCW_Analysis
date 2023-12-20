@@ -81,9 +81,44 @@ ggplot(Oxf_sentiment_scores_2020, aes(x=AI_Index, y=score)) +
 Oxf_mult_var_reg_2020 <-full_join(Oxf_sentiment_scores_2020,joined_multivariate_2020)
 Oxf_mult_var_reg_2020 <- na.omit(Oxf_mult_var_reg_2020)
 
-Oxf_mult_var_reg_2020_lm <- lm(score ~ AI_Index + + Military + NY.GDP.MKTP.PP.CD + Scaled_HCI, data = Oxf_mult_var_reg_2020)
+Oxf_mult_var_reg_2020_lm <- lm(score ~ AI_Index + Military + NY.GDP.MKTP.PP.CD + Scaled_HCI, data = Oxf_mult_var_reg_2020)
 summary(Oxf_mult_var_reg_2020_lm)
 
 Oxf_Vif_2020 <- vif(Oxf_mult_var_reg_2020_lm)
 print(Oxf_Vif_2020)
+
+
+
+
+
+########################### Colored graph
+
+
+
+# Create new columns for color and size, and a label for the countries
+Oxf_sentiment_scores_2020 <- Oxf_sentiment_scores_2020 %>%
+  mutate(
+    color = case_when(
+      Country %in% g7_countries ~ "blue",
+      Country %in% red_countries ~ "red",
+      TRUE ~ "grey"
+    ),
+    size = case_when(
+      Country %in% g7_countries ~ 5,
+      Country %in% red_countries ~ 5,
+      TRUE ~ 2
+    ),
+    label = if_else(Country %in% c(g7_countries, red_countries), as.character(Country), NA_character_)
+  )
+
+
+# Plot with color-blind friendly colors, different sizes, and labels for G7 and red countries
+ggplot(Oxf_sentiment_scores_2020, aes(x = AI_Index, y = score)) +
+  geom_point(aes(color = color, size = size)) +
+  geom_text_repel(aes(label = label), na.rm = TRUE, size = 3) +  # Add labels with ggrepel for better placement
+  geom_smooth(method = "lm", se = FALSE, color = "black") +  # Single regression line
+  scale_color_manual(values = c("blue" = "blue", "red" = "red", "grey" = "grey")) +
+  labs(title = "CCW Governmental Expert 2020") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Hide the legend for size
 
